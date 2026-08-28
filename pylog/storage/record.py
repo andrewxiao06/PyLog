@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from zlib import crc32
 
 # little-endian: offset(Q), timestamp(Q), key_length(I), value_length(I), crc(I)
-_HEADER_FORMAT = "<QQIII"
+HEADER_FORMAT = "<QQIII"
 
 
 @dataclass
@@ -36,7 +36,7 @@ def encode(record: Record) -> bytes:
     key_bytes = record.key if record.key is not None else b""
     checksum = crc32(key_bytes + record.value)
     header = struct.pack(
-        _HEADER_FORMAT,
+        HEADER_FORMAT,
         record.offset,
         record.timestamp,
         len(key_bytes),
@@ -52,7 +52,7 @@ def decode(data: bytes) -> Record:
     doesn't match."""
     header = data[: header_size()]
     offset, timestamp, key_length, value_length, checksum = struct.unpack(
-        _HEADER_FORMAT, header
+        HEADER_FORMAT, header
     )
 
     key_start = header_size()
@@ -77,4 +77,4 @@ def header_size() -> int:
     """Return the fixed number of bytes every record's header occupies,
     so callers know how many bytes to read before they can determine the
     variable body's length."""
-    return struct.calcsize(_HEADER_FORMAT)
+    return struct.calcsize(HEADER_FORMAT)
