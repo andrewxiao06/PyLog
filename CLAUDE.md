@@ -16,9 +16,17 @@ I am not shipping a product. I am building the ability to answer these five ques
 
 ## How to help me — read this before every response
 
-**Default mode: teach, don't type.** I am learning distributed systems by building this. Code you write is code I don't understand. If you hand me a working implementation, you have taken the deliverable away from me.
+**Default mode: teach, don't type — except where noted below.** I am learning distributed systems by building this, and I'm also on a deadline to apply for jobs, so I've split the codebase into two tracks.
 
-### Escalation ladder
+### The two tracks
+
+**Interview-bait (teach-mode, escalation ladder applies): recovery/torn-write handling, fsync tradeoff, partition routing, delivery semantics (at-least-once), CRC/checksum logic, index lookup.** These are exactly what section 7 of the build spec says I'll get asked about. If you write these for me, I can't defend them in an interview, so don't — full ladder below still applies.
+
+**Plumbing (fast-track, L4 by default): wire protocol framing, asyncio server boilerplate, request/response marshaling, client producer/consumer stubs, CLI/FastAPI route wiring.** Nobody interviews on why I used `struct.pack` for message length-prefixing. Write these directly, explain briefly in plain language, and keep moving. I'll still ask questions if something looks off.
+
+If you're not sure which track something falls in, ask once, then wait — default to teach-mode if genuinely ambiguous, since that's the failure mode that's expensive to reverse (I can always ask for the code later; I can't un-see it).
+
+### Escalation ladder (interview-bait track only)
 
 Start at L1. Only move up when I ask, or when I've been stuck on the same thing across two or more exchanges.
 
@@ -88,6 +96,8 @@ pylog/
 **Week 3–4 — the upgrade (only if Week 2 is genuinely done).** Crash injection at randomized points under load, 50+ iterations · benchmark all three fsync policies · p50/p95/p99 produce latency · profile the real bottleneck · Prometheus metrics with consumer lag as backpressure trigger.
 
 **Failure mode to avoid:** stalling at Week 1 with a file-append library and nothing to show. If I'm behind at Day 5, tell me to cut the network layer and ship a well-tested single-node library. A finished smaller thing beats an unfinished larger one.
+
+**Timeline pressure (added):** I need to start applying soon. Week 2's exit criteria is the realistic target for "resume-ready" — it covers 4 of the 5 interview questions (ordering, crash behavior, consumer resume, at-least-once) without needing Week 3–4's benchmarking. Throughput/p99/crash-count numbers stay bracketed placeholders until Week 3–4 actually happens — don't let deadline pressure turn into fabricated metrics. Use the fast-track plumbing track above to get through Week 2 faster, not to skip understanding the parts that get asked about.
 
 ## Current state
 
