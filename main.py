@@ -1,12 +1,21 @@
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel #defines data structures
 
 from pylog.broker.server import Broker
 
 app = FastAPI()
 broker = Broker(Path("./data"))
+
+
+@app.get("/metrics")
+def metrics_endpoint() -> PlainTextResponse:
+    """Prometheus scrapes this route on an interval (e.g. every 15s) and
+    stores each number as a time series, so a dashboard can graph
+    produce throughput/latency over time instead of just this instant."""
+    return PlainTextResponse(broker.metrics.render_prometheus())
 
 
 class FetchRequest(BaseModel):

@@ -4,8 +4,10 @@ for concurrent *producers* since each gets its own connection and the
 event loop interleaves them."""
 
 import asyncio
+import time
 from pathlib import Path
 
+from pylog.admin.metrics import Metrics
 from pylog.broker.protocol import (
     CommitRequest,
     CommitResponse,
@@ -35,6 +37,7 @@ class Broker:
         self.topics: dict[str, Topic] = {}
         self.offsets = OffsetStore(self.data_dir / "_offsets")
         self.groups: dict[tuple[str, str], ConsumerGroup] = {}
+        self.metrics = Metrics()
 
     def get_or_create_topic(self, name: str) -> Topic:
         if name not in self.topics:
@@ -51,9 +54,11 @@ class Broker:
 
     def dispatch(self, opcode: OpCode, payload: bytes) -> tuple[OpCode, bytes]:
         if opcode == OpCode.PRODUCE:
+            start = time.perf_counter()
             request = ProduceRequest.decode(payload)
             topic = self.get_or_create_topic(request.topic)
             partition, offset = topic.append(request.key, request.value)
+            self.metrics.record_produce((time.perf_counter() - start) * 1000)
             return OpCode.PRODUCE_RESPONSE, ProduceResponse(partition, offset).encode()
 
         if opcode == OpCode.FETCH:
@@ -61,6 +66,7 @@ class Broker:
             topic = self.get_or_create_topic(request.topic)
             records = topic.read_from(request.partition, request.offset, request.max_bytes)
             high_watermark = topic.partitions[request.partition].high_watermark
+            self.metrics.record_fetch()
             payload_records = [
                 RecordPayload(r.offset, r.timestamp, r.key, r.value) for r in records
             ]
